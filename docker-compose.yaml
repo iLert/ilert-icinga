@@ -1,0 +1,80 @@
+version: "3.7"
+services:
+  icinga2:
+    image: jordan/icinga2
+    restart: always
+    container_name: icinga2
+    hostname: icinga2
+    entrypoint:
+      - sh
+      - -c
+      - |-
+          set -e
+          echo "=> Creating crontab..."
+          (crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/ilert-icinga2.py --mode send --endpoint https://api.ilert.com") | crontab -
+          echo "=> Starting crontab..."
+          service cron start
+          echo "=> Starting icinga2..."
+          /opt/run
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - ICINGA2_FEATURE_GRAPHITE=1
+      - ICINGA2_FEATURE_GRAPHITE_HOST=graphite
+      - ICINGA2_FEATURE_GRAPHITE_PORT=2003
+      - ICINGA2_FEATURE_GRAPHITE_URL=http://graphite
+      # - ICINGA2_FEATURE_GRAPHITE_SEND_THRESHOLDS=true
+      # - ICINGA2_FEATURE_GRAPHITE_SEND_METADATA=false
+      #- ICINGAWEB2_ADMIN_USER=icingaadmin
+      #- ICINGAWEB2_ADMIN_PASS=icinga
+      #- ICINGA2_USER_FULLNAME=Icinga2 Docker Monitoring Instance
+      - DEFAULT_MYSQL_HOST=mysql
+    volumes:
+      - ./data/icinga/cache:/var/cache/icinga2
+      - ./data/icinga/certs:/etc/apache2/ssl
+      - ./data/icinga/etc/icinga2:/etc/icinga2
+      - ./data/icinga/etc/icingaweb2:/etc/icingaweb2
+      - ./data/icinga/lib/icinga:/var/lib/icinga2
+      - ./data/icinga/lib/php/sessions:/var/lib/php/sessions
+      - ./data/icinga/log/apache2:/var/log/apache2
+      - ./data/icinga/log/icinga2:/var/log/icinga2
+      - ./data/icinga/log/icingaweb2:/var/log/icingaweb2
+      - ./data/icinga/log/mysql:/var/log/mysql
+      - ./data/icinga/spool:/var/spool/icinga2
+      # local iLert config
+      - ./ilert-icinga2.conf:/etc/icinga2/conf.d/ilert-icinga2.conf
+      - ./ilert-icinga2.py:/usr/local/bin/ilert-icinga2.py
+    ports:
+      - "4080:80"
+      - "4443:443"
+      - "5665:5665"
+    networks:
+      - icinga
+
+  graphite:
+    image: graphiteapp/graphite-statsd:latest
+    container_name: graphite
+    hostname: graphite-dev-local
+    restart: on-failure:5
+    volumes:
+      - ./data/graphite/conf:/opt/graphite/conf
+      - ./data/graphite/storage:/opt/graphite/storage
+      - ./data/graphite/log/graphite:/var/log/graphite
+      - ./data/graphite/log/carbon:/var/log/carbon
+    networks:
+      - icinga
+
+  mysql:
+    image: mariadb
+    container_name: mariadb
+    hostname: mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - ./data/mysql/data:/var/lib/mysql
+    networks:
+      - icinga
+
+networks:
+  icinga: {}
+
