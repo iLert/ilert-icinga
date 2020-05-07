@@ -1,7 +1,7 @@
 #!/bin/bash
-# iLert Icinga2 Plugin
+# iLert Icinga Plugin
 
-COMMAND="/usr/local/bin/ilert-icinga2.py"
+COMMAND="/usr/local/bin/ilert-icinga.py"
 
 $COMMAND --mode save --apikey $NOTIFY_PARAMETER_1
 

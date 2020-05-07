@@ -2,7 +2,7 @@ version: "3.7"
 services:
   icinga2:
     build:
-      dockerfile: icinga2.Dockerfile
+      dockerfile: icinga.Dockerfile
       context: .
     restart: always
     container_name: icinga2
@@ -32,7 +32,7 @@ services:
       - ./data/icinga/log/icingaweb2:/var/log/icingaweb2
       - ./data/icinga/log/mysql:/var/log/mysql
       - ./data/icinga/spool:/var/spool/icinga2
-      - ./data/ilert-icinga2:/tmp/ilert-icinga2
+      - ./data/ilert-icinga:/tmp/ilert-icinga
     ports:
       - "4080:80"
       - "4443:443"
@@ -72,11 +72,11 @@ services:
     container_name: cron
     restart: always
     environment:
-      - CRON_STRINGS=* * * * * root /tmp/ilert/ilert-icinga2.py --mode send --endpoint https://api.ilert.com
+      - CRON_STRINGS=* * * * * root /tmp/ilert/ilert-icinga.py --mode send --endpoint https://api.ilert.com
       - DOCKER_MODE=true
     volumes:
-      - ./ilert-icinga2.py:/tmp/ilert/ilert-icinga2.py
-      - ./data/ilert-icinga2:/tmp/ilert-icinga2
+      - ./ilert-icinga.py:/tmp/ilert/ilert-icinga.py
+      - ./data/ilert-icinga:/tmp/ilert-icinga
     networks:
       - icinga
 

@@ -1,4 +1,4 @@
 #!/bin/bash
 
-tar cfvz ilert-icinga2.tar.gz ilert-icinga2.py ilert-icinga2.conf ilert-icinga2.sh
-zip ilert-icinga2.zip ilert-icinga2.py ilert-icinga2.conf ilert-icinga2.sh
+tar cfvz ilert-icinga.tar.gz ilert-icinga.py ilert-icinga.conf ilert-icinga.sh
+zip ilert-icinga.zip ilert-icinga.py ilert-icinga.conf ilert-icinga.sh
