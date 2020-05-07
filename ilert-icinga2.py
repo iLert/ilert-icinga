@@ -8,7 +8,9 @@
 
 
 import os
+import sys
 import syslog
+import datetime
 import fcntl
 import urllib2
 from urllib2 import HTTPError
@@ -22,9 +24,26 @@ import io
 PLUGIN_VERSION = "1.4"
 
 
+def log(level, message):
+    docker_mode = os.getenv("DOCKER_MODE", "false")
+    if docker_mode == "yes" or docker_mode == "true" or docker_mode == "y":
+        if level == "ERROR":
+            sys.stderr.write("%s %s %s\n" % (datetime.datetime.now().isoformat(), level, message))
+        else:
+            sys.stdout.write("%s %s %s\n" % (datetime.datetime.now().isoformat(), level, message))
+    else:
+        if level == "ERROR":
+            syslog.syslog(syslog.LOG_ERR, "%s %s %s" % (datetime.datetime.now().isoformat(), level, message))
+        elif level == "WARN":
+            syslog.syslog(syslog.LOG_WARNING, "%s %s %s" % (datetime.datetime.now().isoformat(), level, message))
+        else:
+            syslog.syslog(syslog.LOG_INFO, "%s %s %s" % (datetime.datetime.now().isoformat(), level, message))
+
+
 def persist_event(api_key, directory, payload):
     """Persists event to disk"""
-    syslog.syslog('writing event to disk...')
+    log("INFO", "writing event to disk...")
+    log("INFO", payload)
 
     xml_doc = create_xml(api_key, payload)
 
@@ -45,9 +64,9 @@ def persist_event(api_key, directory, payload):
             # os.fsync(f.fileno())
             f.close()
             os.rename(file_path_tmp, file_path)
-            syslog.syslog('created event file in %s' % file_path)
+            log("INFO", "created event file in %s" % file_path)
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, "could not write event to %s. Cause: %s %s" % (file_path, type(e), e.args))
+        log("ERROR", "could not write event to %s. Cause: %s %s" % (file_path, type(e), e.args))
         exit(1)
 
 
@@ -81,29 +100,27 @@ def flush(endpoint, directory, port):
         except IOError:
             continue
 
-        syslog.syslog('sending event %s to iLert...' % event)
+        log("INFO", "sending event %s to iLert..." % event)
 
         try:
             req = urllib2.Request(url, xml_doc, headers)
             urllib2.urlopen(req, timeout=60)
         except HTTPError as e:
             if e.code == 429:
-                syslog.syslog(syslog.LOG_WARNING, "too many requests, will try later. Server response: %s" % e.read())
+                log("WARN", "too many requests, will try later. Server response: %s" % e.read())
             elif 400 <= e.code <= 499:
-                syslog.syslog(syslog.LOG_WARNING, "event not accepted by iLert. Reason: %s" % e.read())
+                log("WARN", "event not accepted by iLert. Reason: %s\n" % e.read())
                 os.remove(event)
             else:
-                syslog.syslog(syslog.LOG_ERR,
-                              "could not send event to iLert. HTTP error code %s, reason: %s, %s" % (
-                                  e.code, e.reason, e.read()))
+                sys.stderr.write("could not send event to iLert. HTTP error code %s, reason: %s, %s" % (
+                    e.code, e.reason, e.read()))
         except URLError as e:
-            syslog.syslog(syslog.LOG_ERR, "could not send event to iLert. Reason: %s" % e.reason)
+            log("ERROR", "could not send event to iLert. Reason: %s\n" % e.reason)
         except Exception as e:
-            syslog.syslog(syslog.LOG_ERR,
-                          "an unexpected error occurred. Please report a bug. Cause: %s %s" % (type(e), e.args))
+            log("ERROR", "an unexpected error occurred. Please report a bug. Cause: %s %s" % (type(e), e.args))
         else:
             os.remove(event)
-            syslog.syslog('event %s has been sent to iLert and removed from event directory' % event)
+            log("INFO", "event %s has been sent to iLert and removed from event directory" % event)
 
 
 def create_xml(apikey, payload):
@@ -161,7 +178,7 @@ def main():
         if apikey is None:
             error_msg = "parameter apikey is required in save mode and must be provided either via command line or in " \
                         "the pager field of the contact definition in Icinga"
-            syslog.syslog(syslog.LOG_ERR, error_msg)
+            log("ERROR", error_msg)
             parser.error(error_msg)
         persist_event(apikey, args.dir, payload)
         lock_and_flush(args.endpoint, args.dir, args.port)

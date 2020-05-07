@@ -1,7 +1,9 @@
 version: "3.7"
 services:
   icinga2:
-    build: .
+    build:
+      dockerfile: icinga2.Dockerfile
+      context: .
     restart: always
     container_name: icinga2
     hostname: icinga2
@@ -17,6 +19,7 @@ services:
       #- ICINGAWEB2_ADMIN_PASS=icinga
       #- ICINGA2_USER_FULLNAME=Icinga2 Docker Monitoring Instance
       - DEFAULT_MYSQL_HOST=mysql
+      - DOCKER_MODE=true
     volumes:
       - ./data/icinga/cache:/var/cache/icinga2
       - ./data/icinga/certs:/etc/apache2/ssl
@@ -29,6 +32,7 @@ services:
       - ./data/icinga/log/icingaweb2:/var/log/icingaweb2
       - ./data/icinga/log/mysql:/var/log/mysql
       - ./data/icinga/spool:/var/spool/icinga2
+      - ./data/ilert-icinga2:/tmp/ilert-icinga2
     ports:
       - "4080:80"
       - "4443:443"
@@ -58,6 +62,21 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     volumes:
       - ./data/mysql/data:/var/lib/mysql
+    networks:
+      - icinga
+
+  cron:
+    build:
+      dockerfile: cron.Dockerfile
+      context: .
+    container_name: cron
+    restart: always
+    environment:
+      - CRON_STRINGS=* * * * * root /tmp/ilert/ilert-icinga2.py --mode send --endpoint https://api.ilert.com
+      - DOCKER_MODE=true
+    volumes:
+      - ./ilert-icinga2.py:/tmp/ilert/ilert-icinga2.py
+      - ./data/ilert-icinga2:/tmp/ilert-icinga2
     networks:
       - icinga
 
