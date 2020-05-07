@@ -1,8 +1,8 @@
-# ilert-icinga
+# ilert-icinga2
 
-iLert Integration Plugin for Icinga
+iLert Integration Plugin for Icinga2
 
 For setup instructions, refer to our integration guides below.
 
 ## Integration Guides
-* [iLert Icinga Integration](https://docs.ilert.com/integrations/icinga)
+* [iLert Icinga2 Integration](https://docs.ilert.com/integrations/icinga-2)
