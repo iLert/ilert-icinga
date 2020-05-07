@@ -86,7 +86,7 @@ def lock_and_flush(endpoint, directory, port):
 def flush(endpoint, directory, port):
     """Send all events in event directory to iLert"""
     headers = {"Content-type": "application/xml", "Accept": "application/xml"}
-    url = "%s:%s/api/v1/events/nagios" % (endpoint, port)
+    url = "%s:%s/api/v1/events/icinga" % (endpoint, port)
 
     # populate list of event files sorted by creation date
     events = [os.path.join(directory, f) for f in os.listdir(directory)]
