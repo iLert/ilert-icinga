@@ -131,3 +131,6 @@ dmypy.json
 .idea
 .vscode
 data/
+
+ilert-icinga2.tar.gz
+ilert-icinga2.zip
