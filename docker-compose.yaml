@@ -1,21 +1,10 @@
 version: "3.7"
 services:
   icinga2:
-    image: jordan/icinga2
+    build: .
     restart: always
     container_name: icinga2
     hostname: icinga2
-    entrypoint:
-      - sh
-      - -c
-      - |-
-          set -e
-          echo "=> Creating crontab..."
-          (crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/ilert-icinga2.py --mode send --endpoint https://api.ilert.com") | crontab -
-          echo "=> Starting crontab..."
-          service cron start
-          echo "=> Starting icinga2..."
-          /opt/run
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - ICINGA2_FEATURE_GRAPHITE=1
@@ -40,9 +29,6 @@ services:
       - ./data/icinga/log/icingaweb2:/var/log/icingaweb2
       - ./data/icinga/log/mysql:/var/log/mysql
       - ./data/icinga/spool:/var/spool/icinga2
-      # local iLert config
-      - ./ilert-icinga2.conf:/etc/icinga2/conf.d/ilert-icinga2.conf
-      - ./ilert-icinga2.py:/usr/local/bin/ilert-icinga2.py
     ports:
       - "4080:80"
       - "4443:443"
