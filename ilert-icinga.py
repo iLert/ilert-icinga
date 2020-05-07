@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-# iLert Icinga2 Plugin
+# iLert Icinga Plugin
 #
 # Copyright (c) 2013-2020, iLert GmbH. <support@ilert.com>
 # All rights reserved.
@@ -138,15 +138,15 @@ def create_xml(apikey, payload):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='send events from Icinga2 to iLert')
-    parser.add_argument('-m', '--mode', choices=['icinga2', 'save', 'cron', 'send'], required=True,
+    parser = argparse.ArgumentParser(description='send events from Icinga to iLert')
+    parser.add_argument('-m', '--mode', choices=['icinga', 'save', 'cron', 'send'], required=True,
                         help='Execution mode: "save" persists an event to disk and "send" submits all saved events '
                              'to iLert. Note that after every "save" "send" will also be called.')
     parser.add_argument('-a', '--apikey', help='API key for the alert source in iLert')
     parser.add_argument('-e', '--endpoint', default='https://api.ilert.com',
                         help='iLert API endpoint (default: %(default)s)')
     parser.add_argument('-p', '--port', type=int, default=443, help='endpoint port (default: %(default)s)')
-    parser.add_argument('-d', '--dir', default='/tmp/ilert-icinga2',
+    parser.add_argument('-d', '--dir', default='/tmp/ilert-icinga',
                         help='event directory where events are stored (default: %(default)s)')
     parser.add_argument('--version', action='version', version=PLUGIN_VERSION)
     parser.add_argument('payload', nargs=argparse.REMAINDER,
@@ -174,7 +174,7 @@ def main():
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
 
-    if args.mode == "icinga2" or args.mode == "save":
+    if args.mode == "icinga" or args.mode == "save":
         if apikey is None:
             error_msg = "parameter apikey is required in save mode and must be provided either via command line or in " \
                         "the pager field of the contact definition in Icinga"
