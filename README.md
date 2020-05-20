@@ -8,7 +8,7 @@ For setup instructions, refer to our integration guides below.
 * [iLert Icinga Integration](https://docs.ilert.com/integrations/icinga)
 
 
-## Getting started with local icinga setup and iLert
+## Getting started with local Icinga setup and iLert
 
 > Requirements: docker compose v3.7+
 
