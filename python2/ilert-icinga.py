@@ -3,7 +3,7 @@
 
 # iLert Icinga Plugin
 #
-# Copyright (c) 2013-2022, iLert GmbH. <support@ilert.com>
+# Copyright (c) 2013-2020, iLert GmbH. <support@ilert.com>
 # All rights reserved.
 
 
@@ -12,16 +12,16 @@ import sys
 import syslog
 import datetime
 import fcntl
-import urllib.request
-from urllib.request import HTTPError
-from urllib.error import URLError
+import urllib2
+from urllib2 import HTTPError
+from urllib2 import URLError
 import uuid
 from xml.sax.saxutils import escape
 from xml.sax.saxutils import quoteattr
 import argparse
 import io
 
-PLUGIN_VERSION = "1.5"
+PLUGIN_VERSION = "1.4"
 
 
 def log(level, message):
@@ -90,12 +90,12 @@ def flush(endpoint, directory, port):
 
     # populate list of event files sorted by creation date
     events = [os.path.join(directory, f) for f in os.listdir(directory)]
-    events = list(filter(lambda x: x.endswith(".ilert"), events))
-    events = sorted(events, key=lambda x: os.path.getmtime(x))
+    events = filter(lambda x: x.endswith(".ilert"), events)
+    events.sort(key=lambda x: os.path.getmtime(x))
 
     for event in events:
         try:
-            with open(event, 'r', encoding='utf-8') as f:
+            with open(event, 'r') as f:
                 xml_doc = f.read()
         except IOError:
             continue
@@ -103,9 +103,8 @@ def flush(endpoint, directory, port):
         log("INFO", "sending event %s to iLert..." % event)
 
         try:
-            data = xml_doc.encode('utf-8')
-            req = urllib.request.Request(url, data, headers)
-            urllib.request.urlopen(req, timeout=60)
+            req = urllib2.Request(url, xml_doc, headers)
+            urllib2.urlopen(req, timeout=60)
         except HTTPError as e:
             if e.code == 429:
                 log("WARN", "too many requests, will try later. Server response: %s" % e.read())
@@ -130,7 +129,7 @@ def create_xml(apikey, payload):
     xml_doc += "<event><apiKey>%s</apiKey><payload>" % apikey
 
     for entry in payload:
-        xml_doc += "<entry key=%s>%s</entry>" % (quoteattr(entry), escape(payload[entry]))
+        xml_doc += "<entry key=%s>%s</entry>" % (quoteattr(entry), unicode(escape(payload[entry]), encoding='utf-8', errors='ignore'))
 
     # XML document end tag
     xml_doc += "</payload></event>"
