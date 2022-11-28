@@ -3,7 +3,7 @@
 
 # iLert Icinga Plugin
 #
-# Copyright (c) 2013-2020, iLert GmbH. <support@ilert.com>
+# Copyright (c) 2013-2022, iLert GmbH. <support@ilert.com>
 # All rights reserved.
 
 
