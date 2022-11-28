@@ -1,8 +1,10 @@
 # ilert-icinga
 
-iLert Integration Plugin for Icinga
+ilert Integration Plugin for Icinga
 
 For setup instructions, refer to our integration guides below.
+
+> Note: use Python >= 3.7 (in case Python 2 is needed, use scripts in `/python2`)
 
 ## Integration Guides
 * [iLert Icinga Integration](https://docs.ilert.com/integrations/icinga)
